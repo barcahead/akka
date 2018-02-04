@@ -3,7 +3,7 @@
  */
 package akka.cluster.sharding.protobuf
 
-import java.io.{ ByteArrayInputStream, ByteArrayOutputStream }
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 
@@ -14,14 +14,14 @@ import akka.actor.ActorRef
 import akka.actor.ExtendedActorSystem
 import akka.cluster.sharding.Shard
 import akka.cluster.sharding.ShardCoordinator
-import akka.cluster.sharding.protobuf.msg.{ ClusterShardingMessages ⇒ sm }
+import akka.cluster.sharding.protobuf.msg.{ClusterShardingMessages => sm}
 import akka.serialization.BaseSerializer
 import akka.serialization.Serialization
 import akka.serialization.SerializerWithStringManifest
 import akka.protobuf.MessageLite
 import java.io.NotSerializableException
 
-import akka.cluster.sharding.ShardRegion.{ StartEntity, StartEntityAck }
+import akka.cluster.sharding.ShardRegion.{GetShardRegionStats, ShardRegionStats, StartEntity, StartEntityAck}
 
 /**
  * INTERNAL API: Protobuf serializer of ClusterSharding messages.
@@ -65,6 +65,9 @@ private[akka] class ClusterShardingMessageSerializer(val system: ExtendedActorSy
   private val GetShardStatsManifest = "DA"
   private val ShardStatsManifest = "DB"
 
+  private val GetShardRegionStatsManifest = "FA"
+  private val ShardRegionStatsManifest = "FB"
+
   private val fromBinaryMap = collection.immutable.HashMap[String, Array[Byte] ⇒ AnyRef](
     EntityStateManifest → entityStateFromBinary,
     EntityStartedManifest → entityStartedFromBinary,
@@ -95,7 +98,10 @@ private[akka] class ClusterShardingMessageSerializer(val system: ExtendedActorSy
     ShardStatsManifest → { bytes ⇒ shardStatsFromBinary(bytes) },
 
     StartEntityManifest → { startEntityFromBinary(_) },
-    StartEntityAckManifest → { startEntityAckFromBinary(_) }
+    StartEntityAckManifest → { startEntityAckFromBinary(_) },
+
+    GetShardRegionStatsManifest → { bytes ⇒ GetShardRegionStats },
+    ShardRegionStatsManifest → { bytes ⇒ ??? }
   )
 
   override def manifest(obj: AnyRef): String = obj match {
@@ -129,6 +135,10 @@ private[akka] class ClusterShardingMessageSerializer(val system: ExtendedActorSy
 
     case GetShardStats                 ⇒ GetShardStatsManifest
     case _: ShardStats                 ⇒ ShardStatsManifest
+
+    case GetShardRegionStats           ⇒ GetShardRegionStatsManifest
+    case _: ShardRegionStats           ⇒ ShardRegionStatsManifest
+
     case _ ⇒
       throw new IllegalArgumentException(s"Can't serialize object of type ${obj.getClass} in [${getClass.getName}]")
   }

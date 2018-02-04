@@ -73,6 +73,10 @@ class ClusterShardingMessageSerializerSpec extends AkkaSpec {
       checkSerialization(Shard.GetShardStats)
     }
 
+    "be able to serialize GetShardRegionStats" in {
+      checkSerialization(ShardRegion.GetShardRegionStats)
+    }
+
     "be able to serialize ShardStats" in {
       checkSerialization(Shard.ShardStats("a", 23))
     }
